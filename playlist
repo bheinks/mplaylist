@@ -46,7 +46,7 @@ def main():
 
     order.add_argument(
         "-r", "--random",
-        help = "sort file names randomly",
+        help = "shuffle file names randomly",
         action = "store_true"
     )
 
@@ -77,7 +77,7 @@ def natural_sort(files):
 
     files.sort(key = alphanum)
 
-# write playlist text file to /tmp
+# write playlist file to /tmp
 def write_playlist(files):
     with open(TEMP_FILE_NAME, "w") as temp_file:
         if verbose:
