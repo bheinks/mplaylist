@@ -31,8 +31,8 @@ def main():
     )
 
     parser.add_argument(
-        "-v", "--verbose",
-        help = "output additional file information",
+        "-r", "--random",
+        help = "shuffle file names randomly",
         action = "store_true"
     )
 
@@ -44,8 +44,8 @@ def main():
     )
 
     parser.add_argument(
-        "-r", "--random",
-        help = "shuffle file names randomly",
+        "-v", "--verbose",
+        help = "output additional file information",
         action = "store_true"
     )
 
@@ -59,15 +59,23 @@ def main():
     else: # else default to current working directory
         files = os.listdir()
 
+    if args.start: # normalize start value as list index
+        args.start -= 1 
+
+    natural_sort(files) # sort playlist naturally
+
     if args.random:
+        if args.start: # "backup"/remove start-sensitive value before shuffling
+            start = files.pop(args.start)
+
         if verbose: print("Shuffling files randomly...")
         shuffle(files)
-        
-    else: # skip natural sort if shuffling
-        natural_sort(files)
 
+        if args.start: # reinsert specified start index at front
+            files.insert(0, start)
+    else:
         if args.start: # concatenate list with specified starting pos
-            files = files[args.start - 1:]
+            files = files[args.start:]
 
     write_playlist(files)
     call(["mplayer", "-playlist", TEMP_FILE_NAME])
