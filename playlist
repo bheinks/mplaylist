@@ -36,15 +36,14 @@ def main():
         action = "store_true"
     )
 
-    order = parser.add_mutually_exclusive_group()
-
-    order.add_argument(
-        "-s", "--sort",
-        help = "sort file names naturally",
-        action = "store_true"
+    parser.add_argument(
+        "-s", "--start",
+        help = "specify the first index of the playlist",
+        action = "store",
+        type = int
     )
 
-    order.add_argument(
+    parser.add_argument(
         "-r", "--random",
         help = "shuffle file names randomly",
         action = "store_true"
@@ -60,12 +59,15 @@ def main():
     else: # else default to current working directory
         files = os.listdir()
 
-    if args.sort:
-        if verbose: print("Sorting files naturally...")
-        natural_sort(files)
-    elif args.random:
+    if args.random:
         if verbose: print("Shuffling files randomly...")
         shuffle(files)
+        
+    else: # skip natural sort if shuffling
+        natural_sort(files)
+
+        if args.start: # concatenate list with specified starting pos
+            files = files[args.start - 1:]
 
     write_playlist(files)
     call(["mplayer", "-playlist", TEMP_FILE_NAME])
@@ -80,16 +82,14 @@ def natural_sort(files):
 # write playlist file to /tmp
 def write_playlist(files):
     with open(TEMP_FILE_NAME, "w") as temp_file:
-        if verbose:
-            print("\nWriting to file:", TEMP_FILE_NAME)
+        if verbose: print("\nWriting to file:", TEMP_FILE_NAME)
 
         for file_name in files:
             temp_file.write(os.path.abspath(file_name) + '\n')
 
-            if verbose:
-                print(file_name)
+            if verbose: print(file_name)
 
-    print() # distinguish between program output and mplayer output
+    if verbose: print() # distinguish between program output and mplayer output
 
 if __name__ == "__main__":
     main()
