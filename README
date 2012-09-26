@@ -2,7 +2,6 @@ playlist.py - A simple MPlayer-compatible playlist generator.
 
 Requirements:
 * Python 3.2.3+
-* MPlayer or most other MPlayer forks (e.g. MPlayer2)
 
 To install this program, copy it to a location in your system $PATH, or store
 it elsewhere and create a symbolic link to it within $PATH. The program itself
