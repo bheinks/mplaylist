@@ -7,27 +7,30 @@
 import argparse
 import os
 
-from getpass import getuser
 from random import shuffle
 from re import split
-from subprocess import call
 
-TEMP_FILE_NAME = "/tmp/playlist-" + getuser()
 verbose = False
 
 def main():
     parser = argparse.ArgumentParser(
-        description = "Generate and play a playlist of MPlayer-compatible media\
-                files.",
-        epilog = "Without any explicit file arguments, program will default to\
+        description = "Generate a playlist of MPlayer-compatible media files.",
+        epilog = "Without any explicit FILE arguments, program will default to\
                 populating the playlist with the contents of the current\
-                working directory."
+                working directoryi (regardless of type/MPlayer compatibility)."
     )
 
     parser.add_argument(
         "files", metavar = "FILE",
         help = "valid MPlayer media file(s)",
         nargs = "*"
+    )
+
+    parser.add_argument(
+        "-o", "--output",
+        help = "specify output file name",
+        action = "store",
+        type = str
     )
 
     parser.add_argument(
@@ -64,6 +67,11 @@ def main():
 
     natural_sort(files) # sort playlist naturally
 
+    if args.output: # if output file name specified
+        file_name = args.output
+    else:
+        file_name = "playlist"
+
     if args.random:
         if args.start: # "backup"/remove start-sensitive value before shuffling
             start = files.pop(args.start)
@@ -77,8 +85,7 @@ def main():
         if args.start: # concatenate list with specified starting pos
             files = files[args.start:]
 
-    write_playlist(files)
-    call(["mplayer", "-playlist", TEMP_FILE_NAME])
+    write_playlist(files, file_name)
 
 # sort file names naturally (e.g. ["Ep. 1", "Ep. 2", "Ep. 10", "Ep. 11"])
 def natural_sort(files):
@@ -88,14 +95,14 @@ def natural_sort(files):
     files.sort(key = alphanum)
 
 # write playlist file to /tmp
-def write_playlist(files):
-    with open(TEMP_FILE_NAME, "w") as temp_file:
-        if verbose: print("\nWriting to file:", TEMP_FILE_NAME)
+def write_playlist(files, file_name):
+    with open(file_name, "w") as playlist:
+        if verbose: print("\nWriting to file:", file_name)
 
-        for file_name in files:
-            temp_file.write(os.path.abspath(file_name) + '\n')
+        for track in files:
+            playlist.write(os.path.abspath(track) + '\n')
 
-            if verbose: print(file_name)
+            if verbose: print(track)
 
     if verbose: print() # distinguish between program output and mplayer output
 
