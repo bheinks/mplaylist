@@ -1,4 +1,4 @@
-playlist.py - A simple MPlayer-compatible playlist generator.
+mplaylist - A simple MPlayer-compatible playlist generator.
 
 Requirements:
 * Python 3.2.3+
@@ -7,4 +7,4 @@ To install this program, copy it to a location in your system $PATH, or store
 it elsewhere and create a symbolic link to it within $PATH. The program itself
 does not require any further installation.
 
-See "playlist -h" for information concerning arguments and flags.
+See "mplaylist -h" for information concerning arguments and flags.

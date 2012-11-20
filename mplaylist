@@ -1,23 +1,21 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-# playlist.py - A simple MPlayer-compatible playlist generator.
-# Version: 1.1
+# mplaylist - A simple MPlayer-compatible playlist generator.
+# Version: 1.2
 # Author: Brett Heinkel <bheinks@gmail.com>
 
 import argparse
 import os
 
+from datetime import datetime
 from random import shuffle
 from re import split
 
-verbose = False
-
 def main():
+    file_name = "playlist-" + datetime.now().strftime("%H%M%S")
+
     parser = argparse.ArgumentParser(
         description = "Generate a playlist of MPlayer-compatible media files.",
-        epilog = "Without any explicit FILE arguments, program will default to\
-                populating the playlist with the contents of the current\
-                working directoryi (regardless of type/MPlayer compatibility)."
     )
 
     parser.add_argument(
@@ -28,7 +26,14 @@ def main():
 
     parser.add_argument(
         "-o", "--output",
-        help = "specify output file name",
+        help = "specify output file name (defaults to \"playlist\" + current time)",
+        action = "store",
+        type = str
+    )
+
+    parser.add_argument(
+        "-x", "--extensions",
+        help = "limit playlist to certain file types (e.g. mplaylist ... -x avi,wma,mp4)",
         action = "store",
         type = str
     )
@@ -42,6 +47,13 @@ def main():
     parser.add_argument(
         "-s", "--start",
         help = "specify the first index of the playlist",
+        action = "store",
+        type = int
+    )
+
+    parser.add_argument(
+        "-e", "--end",
+        help = "specify the last index of the playlist",
         action = "store",
         type = int
     )
@@ -62,28 +74,44 @@ def main():
     else: # else default to current working directory
         files = os.listdir()
 
-    if args.start: # normalize start value as list index
+    if args.extensions:
+        extensions = args.extensions.split(',')
+        files = [file for file in files if file.split('.')[-1] in extensions]
+        
+        if verbose: print("Limiting playlist to files of type:", ", ".join(extensions))
+
+    # normalize start/end values as list indices
+    if args.start:
         args.start -= 1 
+    if args.end:
+        args.end -= 1
 
     natural_sort(files) # sort playlist naturally
 
     if args.output: # if output file name specified
         file_name = args.output
-    else:
-        file_name = "playlist"
 
     if args.random:
-        if args.start: # "backup"/remove start-sensitive value before shuffling
-            start = files.pop(args.start)
-
         if verbose: print("Shuffling files randomly...")
+
+        # "backup"/remove index-sensitive values before shuffling
+        if args.start: 
+            start = files.pop(args.start)
+        if args.end:
+            end = files.pop(args.end)
+
         shuffle(files)
 
         if args.start: # reinsert specified start index at front
             files.insert(0, start)
+        if args.end: # reappend specified end index at end
+            files.append(end)
     else:
-        if args.start: # concatenate list with specified starting pos
+        # concatenate list with specified start/end indices
+        if args.start:
             files = files[args.start:]
+        if args.end:
+            files = files[:args.end + 1]
 
     write_playlist(files, file_name)
 
@@ -94,17 +122,15 @@ def natural_sort(files):
 
     files.sort(key = alphanum)
 
-# write playlist file to /tmp
+# write playlist file
 def write_playlist(files, file_name):
     with open(file_name, "w") as playlist:
-        if verbose: print("\nWriting to file:", file_name)
+        if verbose: print("Writing to file:", file_name)
 
         for track in files:
             playlist.write(os.path.abspath(track) + '\n')
 
-            if verbose: print(track)
-
-    if verbose: print() # distinguish between program output and mplayer output
+            if verbose: print('\t' + track)
 
 if __name__ == "__main__":
     main()
